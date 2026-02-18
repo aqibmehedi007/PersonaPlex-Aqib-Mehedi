@@ -2,10 +2,11 @@ import asyncio
 import subprocess
 import threading
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 import uvicorn
 import os
 import sys
+import psutil # For smarter process management
 
 # Configuration
 MOSHI_BIN = os.path.abspath(os.path.join("moshi_bin", "moshi-sts.exe"))
@@ -99,6 +100,12 @@ async def heartbeat():
         await manager.broadcast("HEARTBEAT: Moshi engine is active...")
         await asyncio.sleep(5)
 
+@app.get("/bg.png")
+async def get_image():
+    if os.path.exists("bg.png"):
+        return FileResponse("bg.png")
+    return {"error": "Image not found"}
+
 @app.post("/start")
 async def start_bot():
     global process
@@ -140,9 +147,11 @@ async def stop_bot():
         try:
             # On Windows, taskkill is more reliable for tree termination
             subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+            print(f"Terminated process {process.pid}")
         except Exception as e:
             print(f"Error killing process: {e}")
-        process = None
+        finally:
+            process = None
     return {"status": "stopped"}
 
 @app.on_event("startup")
