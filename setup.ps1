@@ -173,7 +173,7 @@ Write-Step 5 $totalSteps "Setting up model directories..."
 # Copy model files
 $copies = @(
     @{ Src = "moshi_bin\Codes4Fun\personaplex-7b-v1-q4_k-GGUF\model-q4_k.gguf"; Dst = "models\m\model.gguf"; Label = "model weights" },
-    @{ Src = "moshi_bin\Codes4Fun\personaplex-7b-v1-q4_k-GGUF\voice.gguf"; Dst = "models\m\voice.gguf"; Label = "voice embedding" },
+    @{ Src = "moshi_bin\Codes4Fun\personaplex-7b-v1-q4_k-GGUF\voices\NATF0.gguf"; Dst = "models\m\voice.gguf"; Label = "voice embedding (default)" },
     @{ Src = "moshi_bin\Codes4Fun\moshi-common\mimi-e351c8d8-125.gguf"; Dst = "models\moshi-common\mimi-e351c8d8-125.gguf"; Label = "audio codec" },
     @{ Src = "moshi_bin\Codes4Fun\moshi-common\tokenizer_spm_32k_3.model"; Dst = "models\moshi-common\tokenizer_spm_32k_3.model"; Label = "tokenizer" }
 )

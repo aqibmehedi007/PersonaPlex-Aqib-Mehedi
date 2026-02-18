@@ -142,9 +142,9 @@ if not exist "models\m\model.gguf" (
 )
 
 if not exist "models\m\voice.gguf" (
-    if exist "moshi_bin\Codes4Fun\personaplex-7b-v1-q4_k-GGUF\voice.gguf" (
-        echo   Copying voice embedding...
-        copy /Y "moshi_bin\Codes4Fun\personaplex-7b-v1-q4_k-GGUF\voice.gguf" "models\m\voice.gguf"
+    if exist "moshi_bin\Codes4Fun\personaplex-7b-v1-q4_k-GGUF\voices\NATF0.gguf" (
+        echo   Copying voice embedding (default)...
+        copy /Y "moshi_bin\Codes4Fun\personaplex-7b-v1-q4_k-GGUF\voices\NATF0.gguf" "models\m\voice.gguf"
     )
 )
 
