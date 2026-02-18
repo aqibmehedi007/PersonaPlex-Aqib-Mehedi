@@ -8,6 +8,10 @@
   </p>
 </p>
 
+<p align="center">
+  <img src="demo.png" alt="PersonaPlex Web Interface" width="800">
+</p>
+
 ---
 
 ## ✨ What Is This?
