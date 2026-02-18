@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PersonaPlex Interface</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --accent-color: #00ff88;
+            --secondary-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        .visualizer {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+            margin: 0 auto 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .visualizer.active {
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+            transform: scale(1.1);
+        }
+
+        .status {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #888;
+            min-height: 1.5em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #444;
+        }
+
+        button.active {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+
+        #log {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #555;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>PersonaPlex</h1>
+        <div class="visualizer" id="visualizer">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" stroke="var(--accent-color)" stroke-width="2" fill="none" opacity="0.5">
+                    <animate attributeName="r" values="40;45;40" dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.5;0.2;0.5" dur="2s" repeatCount="indefinite" />
+                </circle>
+            </svg>
+        </div>
+        <div class="status" id="status">Ready</div>
+        <div class="controls">
+            <button id="startBtn">Start Conversation</button>
+            <button id="stopBtn" disabled>Stop</button>
+        </div>
+        <p style="font-size: 0.8rem; color: #666; margin-top: 15px;">
+            Note: This system uses <strong>native SDL2 audio</strong>. <br>
+            It directly accesses your microphone/speakers, so no browser permission is needed.
+        </p>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusEl = document.getElementById('status');
+        const visualizer = document.getElementById('visualizer');
+        const logEl = document.getElementById('log');
+
+        let ws;
+
+        function connectWS() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+
+            ws.onmessage = (event) => {
+                const data = event.data;
+                log(data);
+
+                // Update UI based on logs
+                if (data.includes("HEARTBEAT:") || data.includes("loading...")) {
+                    if (!statusEl.textContent.includes("Listening")) {
+                        statusEl.textContent = "Loading Model Weights (approx. 1 min)...";
+                        statusEl.style.color = "#ffa500";
+                    }
+                } else if (data.includes("Audio device opened") || data.includes("ready")) {
+                    statusEl.textContent = "Listening - Try speaking!";
+                    statusEl.style.color = "var(--accent-color)";
+                    visualizer.classList.add('active');
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                } else if (data.includes("WebSocket closed")) {
+                    statusEl.textContent = "Connection Lost";
+                    statusEl.style.color = "#ff4444";
+                }
+
+                if (statusEl.textContent.includes("Listening")) {
+                    // Simple visualizer pulse on activity
+                    visualizer.classList.add('active');
+                    setTimeout(() => visualizer.classList.remove('active'), 200);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log("WS Closed, retrying...");
+                setTimeout(connectWS, 1000);
+            };
+        }
+
+        connectWS();
+
+        function log(msg) {
+            const div = document.createElement('div');
+            div.textContent = msg;
+            logEl.prepend(div);
+            // Limit log size
+            if (logEl.children.length > 50) logEl.lastChild.remove();
+        }
+
+        startBtn.addEventListener('click', async () => {
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            statusEl.textContent = "Initializing CUDA/Vulkan...";
+            statusEl.style.color = "#888";
+            log("--- Starting Session ---");
+            try {
+                const resp = await fetch('/start', { method: 'POST' });
+                const result = await resp.json();
+                if (result.status === "already_running") {
+                    statusEl.textContent = "Re-joining session...";
+                }
+            } catch (e) {
+                log("Error starting: " + e);
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                statusEl.textContent = "Start Failed";
+            }
+        });
+
+        stopBtn.addEventListener('click', async () => {
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            statusEl.textContent = "Stopping...";
+            statusEl.style.color = "#888";
+            try {
+                await fetch('/stop', { method: 'POST' });
+                statusEl.textContent = "Ready";
+                statusEl.style.color = "#888";
+            } catch (e) {
+                log("Error stopping: " + e);
+            }
+        });
+    </script>
+</body>
+
+</html>

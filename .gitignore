@@ -1,0 +1,67 @@
+# ============================================================================
+# PersonaPlex-Aqib-Mehedi .gitignore
+# ============================================================================
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+.venv/
+venv/
+env/
+.env
+
+# ---- Model Weights (large files - downloaded separately) ----
+*.gguf
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.onnx
+*.model
+
+# ---- Moshi Binary Distribution (downloaded from moshi.cpp releases) ----
+moshi_bin/
+moshi-bin-*.zip
+
+# ---- moshi.cpp Source (cloned separately if needed) ----
+moshi.cpp/
+
+# ---- Dependencies (build artifacts) ----
+deps/
+
+# ---- OS / IDE ----
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ---- Logs ----
+*.log
+npm-debug.log*
+
+# ---- Test / Temp ----
+_test_clone/
+moshi_bin_temp/
+.gemini/
+
+# ---- Old / Temporary Files ----
+help_old.txt
+help_v2_old.txt
+help_full_old.txt
+release_page.html
