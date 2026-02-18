@@ -315,6 +315,65 @@
                 height: 50%;
             }
         }
+
+        /* --- Subtitle Overlay --- */
+        .subtitle-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            max-height: 40%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+            scrollbar-width: none;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .subtitle-overlay.active {
+            opacity: 1;
+        }
+
+        .subtitle-text {
+            font-size: 1.7rem;
+            /* Large, readable font as requested */
+            line-height: 1.4;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+            font-weight: 600;
+            animation: fadeInSubtitle 0.3s ease-out;
+        }
+
+        @keyframes fadeInSubtitle {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .subtitle-text .speaker-tag {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            display: block;
+            font-weight: 800;
+        }
     </style>
 </head>
 
@@ -323,6 +382,10 @@
         <!-- Replace 'persona_bg.jpg' with your generated background image -->
         <img src="/bg.png" class="persona-image" id="personaImg"
             onerror="this.src='https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop'">
+
+        <!-- Live Subtitles Container -->
+        <div class="subtitle-overlay" id="subtitleOverlay"></div>
+
         <div class="persona-overlay">
             <div class="persona-name" id="personaName">PersonaPlex 7B</div>
             <div class="persona-title">Autonomous AI Consultant</div>
@@ -372,6 +435,7 @@
         const waveform = document.getElementById('waveform');
         const logEl = document.getElementById('log');
         const timerEl = document.getElementById('timer');
+        const subtitleOverlay = document.getElementById('subtitleOverlay');
 
         let ws;
         let startTime;
@@ -400,13 +464,28 @@
             timerEl.textContent = "00:00:00";
         }
 
-        function setSpeaking(isSpeaking) {
+        function setSpeaking(isSpeaking, text = null) {
             if (isSpeaking) {
                 waveform.classList.add('active');
+
+                if (text) {
+                    subtitleOverlay.classList.add('active');
+                    const line = document.createElement('div');
+                    line.className = 'subtitle-text';
+                    line.innerHTML = `<span class="speaker-tag">AI Persona</span>${text}`;
+                    subtitleOverlay.appendChild(line);
+                    subtitleOverlay.scrollTop = subtitleOverlay.scrollHeight;
+
+                    // Keep only last 4 lines for focus
+                    if (subtitleOverlay.childNodes.length > 4) {
+                        subtitleOverlay.removeChild(subtitleOverlay.firstChild);
+                    }
+                }
+
                 clearTimeout(speechTimeout);
                 speechTimeout = setTimeout(() => {
                     waveform.classList.remove('active');
-                }, 2000); // 2s silence timeout
+                }, 2000);
             } else {
                 waveform.classList.remove('active');
             }
@@ -432,7 +511,12 @@
 
                 // Detect AI speaking from stdout
                 if (data.includes("[OUT]")) {
-                    setSpeaking(true);
+                    const speech = data.split("[OUT]")[1].trim();
+                    if (speech) {
+                        setSpeaking(true, speech);
+                    } else {
+                        setSpeaking(true);
+                    }
                     setConnected(); // If we see output, we are connected
                 }
 
@@ -444,6 +528,7 @@
                     statusEl.textContent = "LINK TERMINATED";
                     statusEl.style.color = "var(--danger-color)";
                     setSpeaking(false);
+                    subtitleOverlay.classList.remove('active');
                     stopTimer();
                     isConnected = false;
                     startBtn.disabled = false;
@@ -501,6 +586,8 @@
                 await fetch('/stop', { method: 'POST' });
                 statusEl.textContent = "IDLE";
                 setSpeaking(false);
+                subtitleOverlay.classList.remove('active');
+                subtitleOverlay.innerHTML = '';
                 startBtn.disabled = false;
                 stopTimer();
                 isConnected = false;
