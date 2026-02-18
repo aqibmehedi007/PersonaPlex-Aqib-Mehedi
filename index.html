@@ -8,43 +8,124 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-color: #0a0a0b;
-            --sidebar-bg: #111114;
+            --bg-color: #0d0d0d;
             --accent-color: #00ff88;
-            --accent-glow: rgba(0, 255, 136, 0.4);
-            --danger-color: #ff4444;
-            --danger-glow: rgba(255, 68, 68, 0.4);
+            --accent-glow: rgba(0, 255, 136, 0.3);
+            --danger-color: #ff3366;
+            --danger-glow: rgba(255, 51, 102, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
             --text-primary: #ffffff;
             --text-secondary: #a0a0a8;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
         }
 
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             height: 100vh;
-            display: flex;
             overflow: hidden;
-        }
-
-        /* --- Split Layout --- */
-        .persona-side {
-            flex: 1;
-            position: relative;
-            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        /* --- Main Layout --- */
+        .app-container {
+            display: grid;
+            grid-template-columns: 380px 1fr 380px;
+            width: 100vw;
+            height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* --- Transcript Sidebar (Left) --- */
+        .transcript-side {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            height: 100%;
+        }
+
+        .side-header {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+            font-weight: 800;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 15px;
+            opacity: 0.7;
+        }
+
+        .transcript-content {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scrollbar-width: none;
+            padding-bottom: 20px;
+        }
+
+        .transcript-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .subtitle-text {
+            font-size: 1.8rem;
+            /* Large, readable as requested */
+            line-height: 1.5;
+            color: #fff;
+            font-weight: 600;
+            animation: fadeInText 0.4s ease-out;
+            opacity: 0.9;
+        }
+
+        @keyframes fadeInText {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 0.9;
+                transform: translateY(0);
+            }
+        }
+
+        .speaker-tag {
+            color: var(--accent-color);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            display: block;
+            font-weight: 900;
+        }
+
+        /* --- Persona Container (Center) --- */
+        .persona-side {
+            position: relative;
+            border-radius: 24px;
             overflow: hidden;
-            border-right: 1px solid var(--glass-border);
+            border: 1px solid var(--glass-border);
+            background: #000;
+            height: 100%;
         }
 
         .persona-image {
@@ -52,190 +133,164 @@
             height: 100%;
             object-fit: cover;
             opacity: 0.8;
-            transition: opacity 0.5s ease;
+            transition: opacity 1s ease;
         }
 
         .persona-overlay {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 40%;
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
+            bottom: 40px;
+            left: 40px;
+            z-index: 5;
         }
 
         .persona-name {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 5px;
+            font-size: 2.2rem;
+            font-weight: 900;
             letter-spacing: -1px;
+            margin-bottom: 5px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
         }
 
         .persona-title {
+            font-size: 0.9rem;
             color: var(--accent-color);
-            font-size: 1rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 600;
+            letter-spacing: 3px;
+            font-weight: 700;
         }
 
+        /* --- Control Column (Right) --- */
         .control-side {
-            width: 450px;
-            background-color: var(--sidebar-bg);
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
             display: flex;
             flex-direction: column;
-            padding: 40px;
             justify-content: space-between;
-            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            height: 100%;
         }
 
-        /* --- UI Header --- */
         .header {
-            margin-bottom: 40px;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
         .header h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 0.8rem;
+            letter-spacing: 5px;
+            color: #666;
+            font-weight: 800;
+            text-transform: uppercase;
         }
 
-        .header h1::before {
-            content: '';
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: var(--accent-color);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent-color);
-        }
-
-        /* --- Call Display --- */
         .call-display {
+            text-align: center;
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: center;
-            text-align: center;
         }
 
         .status-tag {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             color: var(--text-secondary);
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             display: inline-block;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 20px;
+            border-radius: 50px;
         }
 
         .call-timer {
-            font-size: 3rem;
-            font-weight: 300;
-            margin-bottom: 40px;
+            font-size: 4rem;
+            font-weight: 200;
             font-variant-numeric: tabular-nums;
+            margin: 20px 0;
+            color: #fff;
         }
 
-        /* --- Waveform Animation --- */
+        /* --- Waveform --- */
         .waveform {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
-            height: 60px;
-            margin-bottom: 40px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            gap: 6px;
+            height: 50px;
+            margin: 30px 0;
         }
 
-        .waveform.active {
-            opacity: 1;
-        }
-
-        .bar {
+        .waveform .bar {
             width: 4px;
-            height: 10px;
-            background-color: var(--accent-color);
-            border-radius: 2px;
-            animation: none;
-            box-shadow: 0 0 8px var(--accent-glow);
+            height: 8px;
+            background: var(--accent-color);
+            border-radius: 10px;
+            transition: height 0.2s ease;
+            opacity: 0.2;
         }
 
         .waveform.active .bar {
-            animation: wave 1.2s ease-in-out infinite;
+            opacity: 1;
+            box-shadow: 0 0 15px var(--accent-glow);
+            animation: wave 1s ease-in-out infinite;
         }
 
         @keyframes wave {
 
             0%,
             100% {
-                height: 10px;
+                height: 8px;
             }
 
             50% {
-                height: 50px;
+                height: 40px;
             }
         }
 
-        .bar:nth-child(1) {
+        .waveform.active .bar:nth-child(2) {
             animation-delay: 0.1s;
         }
 
-        .bar:nth-child(2) {
+        .waveform.active .bar:nth-child(3) {
             animation-delay: 0.2s;
         }
 
-        .bar:nth-child(3) {
+        .waveform.active .bar:nth-child(4) {
             animation-delay: 0.3s;
         }
 
-        .bar:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        .bar:nth-child(5) {
-            animation-delay: 0.5s;
-        }
-
-        .bar:nth-child(6) {
-            animation-delay: 0.4s;
-        }
-
-        .bar:nth-child(7) {
-            animation-delay: 0.3s;
-        }
-
-        .bar:nth-child(8) {
+        .waveform.active .bar:nth-child(5) {
             animation-delay: 0.2s;
         }
 
-        /* --- Call Controls --- */
+        .waveform.active .bar:nth-child(6) {
+            animation-delay: 0.1s;
+        }
+
+        /* --- Buttons --- */
         .call-controls {
             display: flex;
             justify-content: center;
             gap: 30px;
-            margin-top: auto;
+            margin-top: 30px;
         }
 
         .btn-call {
-            width: 70px;
-            height: 70px;
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
             border: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-start {
@@ -250,12 +305,10 @@
         }
 
         .btn-start:disabled {
-            background-color: var(--secondary-color);
+            background-color: #222;
             opacity: 0.5;
-            /* Increased from 0.3 for better visibility */
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+            color: #555;
         }
 
         .btn-stop {
@@ -272,159 +325,109 @@
         .btn-stop:disabled {
             background-color: #333;
             opacity: 0.5;
-            /* Increased from 0.3 for better visibility */
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
 
-        /* --- Info / Logs --- */
-        .footer-info {
-            margin-top: 40px;
+        /* --- Footer Logs --- */
+        .footer-logs {
+            margin-top: 30px;
             border-top: 1px solid var(--glass-border);
             padding-top: 20px;
         }
 
         #log {
             font-family: 'Roboto Mono', monospace;
-            font-size: 0.75rem;
-            color: #555;
-            height: 80px;
+            font-size: 0.7rem;
+            color: #444;
+            height: 50px;
             overflow-y: auto;
             mask-image: linear-gradient(to top, black 80%, transparent 100%);
         }
 
-        .meta-note {
-            font-size: 0.7rem;
-            color: #444;
-            margin-top: 10px;
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 320px 1fr 320px;
+            }
         }
 
-        /* Responsive */
-        @media (max-width: 900px) {
+        @media (max-width: 1000px) {
             body {
-                flex-direction: column;
+                overflow-y: auto;
             }
 
-            .control-side {
-                width: 100%;
-                height: 50%;
+            .app-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                gap: 40px;
             }
 
             .persona-side {
-                height: 50%;
-            }
-        }
-
-        /* --- Subtitle Overlay --- */
-        .subtitle-overlay {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            max-height: 40%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 25px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 100;
-            scrollbar-width: none;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-        }
-
-        .subtitle-overlay.active {
-            opacity: 1;
-        }
-
-        .subtitle-text {
-            font-size: 1.7rem;
-            /* Large, readable font as requested */
-            line-height: 1.4;
-            color: #fff;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-            font-weight: 600;
-            animation: fadeInSubtitle 0.3s ease-out;
-        }
-
-        @keyframes fadeInSubtitle {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
+                height: 500px;
             }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .transcript-side {
+                height: 400px;
             }
-        }
-
-        .subtitle-text .speaker-tag {
-            color: var(--accent-color);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 6px;
-            display: block;
-            font-weight: 800;
         }
     </style>
 </head>
 
 <body>
-    <div class="persona-side">
-        <!-- Replace 'persona_bg.jpg' with your generated background image -->
-        <img src="/bg.png" class="persona-image" id="personaImg"
-            onerror="this.src='https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop'">
-
-        <!-- Live Subtitles Container -->
-        <div class="subtitle-overlay" id="subtitleOverlay"></div>
-
-        <div class="persona-overlay">
-            <div class="persona-name" id="personaName">PersonaPlex 7B</div>
-            <div class="persona-title">Autonomous AI Consultant</div>
-        </div>
-    </div>
-
-    <div class="control-side">
-        <div class="header">
-            <h1>SENSORY INTERFACE</h1>
-        </div>
-
-        <div class="call-display">
-            <div class="status-tag" id="status">Secure Link Ready</div>
-            <div class="call-timer" id="timer">00:00:00</div>
-
-            <div class="waveform" id="waveform">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-
-            <div class="call-controls">
-                <button class="btn-call btn-start" id="startBtn" title="Start Call">
-                    <i class="fas fa-phone"></i>
-                </button>
-                <button class="btn-call btn-stop" id="stopBtn" disabled title="End Call">
-                    <i class="fas fa-phone-slash"></i>
-                </button>
+    <div class="app-container">
+        <!-- Section 1: Transcript Card (Left) -->
+        <div class="transcript-side">
+            <div class="side-header">SECURE COMMAND TRANSCRIPT</div>
+            <div class="transcript-content" id="subtitleOverlay">
+                <!-- Subtitles go here -->
             </div>
         </div>
 
-        <div class="footer-info">
-            <div id="log">SYSTEM INITIALIZED. STANDBY.</div>
-            <p class="meta-note">NATIVE SDL2 AUDIO | 24KHZ | CUDA ACCELERATED</p>
+        <!-- Section 2: AI Persona (Center) -->
+        <div class="persona-side">
+            <img src="/bg.png" class="persona-image" id="personaImg"
+                onerror="this.src='https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop'">
+
+            <div class="persona-overlay">
+                <div class="persona-name">PersonaPlex 7B</div>
+                <div class="persona-title">Autonomous AI Consultant</div>
+            </div>
+        </div>
+
+        <!-- Section 3: Call Interface (Right) -->
+        <div class="control-side">
+            <div class="header">
+                <h1>SENSORY INTERFACE</h1>
+            </div>
+
+            <div class="call-display">
+                <div class="status-tag" id="status">Secure Link Ready</div>
+                <div class="call-timer" id="timer">00:00:00</div>
+
+                <div class="waveform" id="waveform">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+
+            <div class="call-actions">
+                <div class="call-controls">
+                    <button class="btn-call btn-start" id="startBtn" title="Start Call">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="btn-call btn-stop" id="stopBtn" disabled title="End Call">
+                        <i class="fas fa-phone-slash"></i>
+                    </button>
+                </div>
+
+                <div class="footer-logs">
+                    <div id="log">SYSTEM READY. STANDBY.</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -469,15 +472,16 @@
                 waveform.classList.add('active');
 
                 if (text) {
-                    subtitleOverlay.classList.add('active');
                     const line = document.createElement('div');
                     line.className = 'subtitle-text';
                     line.innerHTML = `<span class="speaker-tag">AI Persona</span>${text}`;
                     subtitleOverlay.appendChild(line);
+
+                    // Direct Auto-Scroll
                     subtitleOverlay.scrollTop = subtitleOverlay.scrollHeight;
 
-                    // Keep only last 4 lines for focus
-                    if (subtitleOverlay.childNodes.length > 4) {
+                    // Manage history (keep last 30 lines)
+                    if (subtitleOverlay.childNodes.length > 30) {
                         subtitleOverlay.removeChild(subtitleOverlay.firstChild);
                     }
                 }
@@ -509,13 +513,15 @@
                 const data = event.data;
                 log(data);
 
-                // Detect AI speaking from stdout
                 if (data.includes("[OUT]")) {
                     const speech = data.split("[OUT]")[1].trim();
 
-                    // Filter out system messages and technical stats from subtitles
-                    const isSystemMsg = speech.includes("done loading") ||
-                        speech.includes("HEARTBEAT:") ||
+                    // STRICT FILTERING: Hide loading and technical noise from transcript
+                    const lowerSpeech = speech.toLowerCase();
+                    const isSystemMsg = lowerSpeech.includes("done loading") ||
+                        lowerSpeech.includes("heartbeat:") ||
+                        lowerSpeech.includes("loading...") ||
+                        lowerSpeech.includes("audio device") ||
                         /^[0-9.]+$/.test(speech) ||
                         speech.length < 2;
 
@@ -524,7 +530,7 @@
                     } else {
                         setSpeaking(true);
                     }
-                    setConnected(); // If we see output, we are connected
+                    setConnected();
                 }
 
                 if (data.includes("Audio device opened") || data.includes("ready")) {
@@ -535,7 +541,6 @@
                     statusEl.textContent = "LINK TERMINATED";
                     statusEl.style.color = "var(--danger-color)";
                     setSpeaking(false);
-                    subtitleOverlay.classList.remove('active');
                     stopTimer();
                     isConnected = false;
                     startBtn.disabled = false;
@@ -548,14 +553,11 @@
 
         connectWS();
 
-        // Initial status check
         async function checkStatus() {
             try {
                 const resp = await fetch('/status');
                 const data = await resp.json();
-                if (data.running) {
-                    setConnected();
-                }
+                if (data.running) setConnected();
             } catch (e) { }
         }
         checkStatus();
@@ -564,20 +566,18 @@
             const div = document.createElement('div');
             div.textContent = `> ${msg}`;
             logEl.prepend(div);
-            if (logEl.children.length > 30) logEl.lastChild.remove();
+            if (logEl.children.length > 20) logEl.lastChild.remove();
         }
 
         startBtn.addEventListener('click', async () => {
             startBtn.disabled = true;
-            stopBtn.disabled = false; // Enable stop immediately so user can abort
+            stopBtn.disabled = false;
             statusEl.textContent = "INITIALIZING CORE...";
             log("STARTING UPLINK...");
             try {
                 const resp = await fetch('/start', { method: 'POST' });
                 const result = await resp.json();
-                if (result.status === "already_running") {
-                    setConnected();
-                }
+                if (result.status === "already_running") setConnected();
             } catch (e) {
                 log("UPLINK ERROR: " + e);
                 startBtn.disabled = false;
@@ -593,14 +593,13 @@
                 await fetch('/stop', { method: 'POST' });
                 statusEl.textContent = "IDLE";
                 setSpeaking(false);
-                subtitleOverlay.classList.remove('active');
                 subtitleOverlay.innerHTML = '';
                 startBtn.disabled = false;
                 stopTimer();
                 isConnected = false;
             } catch (e) {
                 log("TERMINATION ERROR: " + e);
-                startBtn.disabled = false; // Allow retry
+                startBtn.disabled = false;
             }
         });
     </script>
