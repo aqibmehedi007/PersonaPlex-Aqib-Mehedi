@@ -251,7 +251,8 @@
 
         .btn-start:disabled {
             background-color: var(--secondary-color);
-            opacity: 0.3;
+            opacity: 0.5;
+            /* Increased from 0.3 for better visibility */
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -270,7 +271,8 @@
 
         .btn-stop:disabled {
             background-color: #333;
-            opacity: 0.3;
+            opacity: 0.5;
+            /* Increased from 0.3 for better visibility */
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -319,7 +321,8 @@
 <body>
     <div class="persona-side">
         <!-- Replace 'persona_bg.jpg' with your generated background image -->
-        <img src="bg.png" class="persona-image" id="personaImg">
+        <img src="/bg.png" class="persona-image" id="personaImg"
+            onerror="this.src='https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop'">
         <div class="persona-overlay">
             <div class="persona-name" id="personaName">PersonaPlex 7B</div>
             <div class="persona-title">Autonomous AI Consultant</div>
@@ -374,6 +377,7 @@
         let startTime;
         let timerInterval;
         let speechTimeout;
+        let isConnected = false;
 
         function updateTimer() {
             const now = new Date();
@@ -408,6 +412,16 @@
             }
         }
 
+        function setConnected() {
+            if (isConnected) return;
+            isConnected = true;
+            statusEl.textContent = "CONNECTED";
+            statusEl.style.color = "var(--accent-color)";
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            if (!timerInterval) startTimer();
+        }
+
         function connectWS() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
@@ -419,21 +433,21 @@
                 // Detect AI speaking from stdout
                 if (data.includes("[OUT]")) {
                     setSpeaking(true);
+                    setConnected(); // If we see output, we are connected
                 }
 
                 if (data.includes("Audio device opened") || data.includes("ready")) {
-                    statusEl.textContent = "CONNECTED";
-                    statusEl.style.color = "var(--accent-color)";
-                    startBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    if (!timerInterval) startTimer();
+                    setConnected();
                 } else if (data.includes("HEARTBEAT:") || data.includes("loading...")) {
-                    statusEl.textContent = "ESTABLISHING LINK...";
+                    if (!isConnected) statusEl.textContent = "ESTABLISHING LINK...";
                 } else if (data.includes("WebSocket closed") || data.includes("disconnected")) {
                     statusEl.textContent = "LINK TERMINATED";
                     statusEl.style.color = "var(--danger-color)";
                     setSpeaking(false);
                     stopTimer();
+                    isConnected = false;
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
                 }
             };
 
@@ -441,6 +455,18 @@
         }
 
         connectWS();
+
+        // Initial status check
+        async function checkStatus() {
+            try {
+                const resp = await fetch('/status');
+                const data = await resp.json();
+                if (data.running) {
+                    setConnected();
+                }
+            } catch (e) { }
+        }
+        checkStatus();
 
         function log(msg) {
             const div = document.createElement('div');
@@ -451,16 +477,20 @@
 
         startBtn.addEventListener('click', async () => {
             startBtn.disabled = true;
+            stopBtn.disabled = false; // Enable stop immediately so user can abort
             statusEl.textContent = "INITIALIZING CORE...";
+            log("STARTING UPLINK...");
             try {
                 const resp = await fetch('/start', { method: 'POST' });
                 const result = await resp.json();
                 if (result.status === "already_running") {
-                    statusEl.textContent = "RE-JOINING LINK...";
+                    setConnected();
                 }
             } catch (e) {
                 log("UPLINK ERROR: " + e);
                 startBtn.disabled = false;
+                stopBtn.disabled = true;
+                isConnected = false;
             }
         });
 
@@ -473,8 +503,10 @@
                 setSpeaking(false);
                 startBtn.disabled = false;
                 stopTimer();
+                isConnected = false;
             } catch (e) {
                 log("TERMINATION ERROR: " + e);
+                startBtn.disabled = false; // Allow retry
             }
         });
     </script>

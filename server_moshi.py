@@ -3,10 +3,11 @@ import subprocess
 import threading
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
 import sys
-import psutil # For smarter process management
+import psutil
 
 # Configuration
 MOSHI_BIN = os.path.abspath(os.path.join("moshi_bin", "moshi-sts.exe"))
@@ -29,6 +30,12 @@ CMD_ARGS = [
 ] 
 app = FastAPI()
 process = None
+
+# Mount static files and persona images
+if os.path.exists("bg.png"):
+    @app.get("/bg.png")
+    async def get_image():
+        return FileResponse("bg.png")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -100,11 +107,10 @@ async def heartbeat():
         await manager.broadcast("HEARTBEAT: Moshi engine is active...")
         await asyncio.sleep(5)
 
-@app.get("/bg.png")
-async def get_image():
-    if os.path.exists("bg.png"):
-        return FileResponse("bg.png")
-    return {"error": "Image not found"}
+@app.get("/status")
+async def get_status():
+    global process
+    return {"running": process is not None and process.poll() is None}
 
 @app.post("/start")
 async def start_bot():
