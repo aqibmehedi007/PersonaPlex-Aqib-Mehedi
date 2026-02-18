@@ -9,8 +9,6 @@ param(
     [switch]$Force
 )
 
-$ErrorActionPreference = "Stop"
-
 # --- Configuration ---
 $MOSHI_VERSION = "v0.7.0-beta"
 $MOSHI_ZIP = "moshi-bin-win-x64-$MOSHI_VERSION.zip"
@@ -65,12 +63,11 @@ try {
 
 # --- Step 2: Install Python Dependencies ---
 Write-Step 2 $totalSteps "Installing Python dependencies..."
-$pipOutput = pip install -r requirements.txt 2>&1
-$ec = $LASTEXITCODE
-if ($ec -ne 0) {
-    Write-Fail "Failed to install Python dependencies (Exit Code: $ec)"
-    Write-Host "  Error details:" -ForegroundColor Red
-    $pipOutput | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkRed }
+# Run pip directly. If it fails, $LASTEXITCODE will be non-zero.
+# We don't use try-catch here because external command failures don't trigger it by default.
+pip install -r requirements.txt
+if ($LASTEXITCODE -ne 0) {
+    Write-Fail "Failed to install Python dependencies (Exit Code: $LASTEXITCODE)"
     Write-Host "  Try: pip install uvicorn fastapi python-multipart requests" -ForegroundColor Yellow
     Read-Host "Press Enter to exit"
     exit 1
@@ -128,7 +125,7 @@ if ((Test-Path "moshi_bin\moshi-sts.exe") -and -not $Force) {
 # --- Step 4: Download PersonaPlex Model ---
 Write-Step 4 $totalSteps "Downloading PersonaPlex model files (~5 GB)..."
 
-if ($SkipModelDownload) {
+if ($SkipModelDownload.IsPresent) {
     Write-Info "Skipping model download (--SkipModelDownload flag set)"
 } elseif ((Test-Path "moshi_bin\Codes4Fun\personaplex-7b-v1-q4_k-GGUF\model-q4_k.gguf") -and -not $Force) {
     Write-Ok "PersonaPlex model already downloaded, skipping"
