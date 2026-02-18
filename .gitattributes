@@ -1,0 +1,4 @@
+# Force GitHub Linguist to detect code in the docs/languages folder
+# By default, GitHub ignores files in docs/ as "documentation"
+docs/languages/* linguist-detectable=true
+docs/languages/* linguist-documentation=false
