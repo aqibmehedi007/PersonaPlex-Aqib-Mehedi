@@ -65,15 +65,17 @@ try {
 
 # --- Step 2: Install Python Dependencies ---
 Write-Step 2 $totalSteps "Installing Python dependencies..."
-try {
-    pip install -r requirements.txt --quiet 2>&1 | Out-Null
-    Write-Ok "Python dependencies installed"
-} catch {
-    Write-Fail "Failed to install Python dependencies"
+$pipOutput = pip install -r requirements.txt 2>&1
+$ec = $LASTEXITCODE
+if ($ec -ne 0) {
+    Write-Fail "Failed to install Python dependencies (Exit Code: $ec)"
+    Write-Host "  Error details:" -ForegroundColor Red
+    $pipOutput | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkRed }
     Write-Host "  Try: pip install uvicorn fastapi python-multipart requests" -ForegroundColor Yellow
     Read-Host "Press Enter to exit"
     exit 1
 }
+Write-Ok "Python dependencies installed"
 
 # --- Step 3: Download moshi.cpp Binaries ---
 Write-Step 3 $totalSteps "Setting up moshi.cpp binaries (~500 MB)..."
