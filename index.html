@@ -512,7 +512,14 @@
                 // Detect AI speaking from stdout
                 if (data.includes("[OUT]")) {
                     const speech = data.split("[OUT]")[1].trim();
-                    if (speech) {
+
+                    // Filter out system messages and technical stats from subtitles
+                    const isSystemMsg = speech.includes("done loading") ||
+                        speech.includes("HEARTBEAT:") ||
+                        /^[0-9.]+$/.test(speech) ||
+                        speech.length < 2;
+
+                    if (speech && !isSystemMsg) {
                         setSpeaking(true, speech);
                     } else {
                         setSpeaking(true);
