@@ -4,129 +4,410 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PersonaPlex Interface</title>
+    <title>PersonaPlex | AI Calling Interface</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-color: #121212;
-            --text-color: #e0e0e0;
+            --bg-color: #0a0a0b;
+            --sidebar-bg: #111114;
             --accent-color: #00ff88;
-            --secondary-color: #333;
+            --accent-glow: rgba(0, 255, 136, 0.4);
+            --danger-color: #ff4444;
+            --danger-glow: rgba(255, 68, 68, 0.4);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            color: var(--text-primary);
             height: 100vh;
-            margin: 0;
+            display: flex;
             overflow: hidden;
         }
 
-        .container {
-            text-align: center;
-            width: 100%;
-            max-width: 600px;
-            padding: 20px;
-        }
-
-        .visualizer {
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
-            margin: 0 auto 40px;
+        /* --- Split Layout --- */
+        .persona-side {
+            flex: 1;
+            position: relative;
+            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            border-right: 1px solid var(--glass-border);
+        }
+
+        .persona-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+            transition: opacity 0.5s ease;
+        }
+
+        .persona-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .persona-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            letter-spacing: -1px;
+        }
+
+        .persona-title {
+            color: var(--accent-color);
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .control-side {
+            width: 450px;
+            background-color: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            justify-content: space-between;
             position: relative;
-            transition: all 0.3s ease;
         }
 
-        .visualizer.active {
-            background: radial-gradient(circle, rgba(0, 255, 136, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
-            transform: scale(1.1);
+        /* --- UI Header --- */
+        .header {
+            margin-bottom: 40px;
         }
 
-        .status {
-            font-size: 1.2rem;
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        /* --- Call Display --- */
+        .call-display {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .status-tag {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
             margin-bottom: 20px;
-            color: #888;
-            min-height: 1.5em;
+            display: inline-block;
         }
 
-        .controls {
+        .call-timer {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 40px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* --- Waveform Animation --- */
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 60px;
+            margin-bottom: 40px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .waveform.active {
+            opacity: 1;
+        }
+
+        .bar {
+            width: 4px;
+            height: 10px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+            animation: none;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .waveform.active .bar {
+            animation: wave 1.2s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+
+            0%,
+            100% {
+                height: 10px;
+            }
+
+            50% {
+                height: 50px;
+            }
+        }
+
+        .bar:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .bar:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .bar:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .bar:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .bar:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .bar:nth-child(6) {
+            animation-delay: 0.4s;
+        }
+
+        .bar:nth-child(7) {
+            animation-delay: 0.3s;
+        }
+
+        .bar:nth-child(8) {
+            animation-delay: 0.2s;
+        }
+
+        /* --- Call Controls --- */
+        .call-controls {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 30px;
+            margin-top: auto;
         }
 
-        button {
-            background-color: var(--secondary-color);
-            color: var(--text-color);
+        .btn-call {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
             border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        button:hover {
-            background-color: #444;
-        }
-
-        button.active {
+        .btn-start {
             background-color: var(--accent-color);
             color: #000;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .btn-start:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .btn-start:disabled {
+            background-color: var(--secondary-color);
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-stop {
+            background-color: var(--danger-color);
+            color: #fff;
+            box-shadow: 0 0 20px var(--danger-glow);
+        }
+
+        .btn-stop:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--danger-glow);
+        }
+
+        .btn-stop:disabled {
+            background-color: #333;
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* --- Info / Logs --- */
+        .footer-info {
+            margin-top: 40px;
+            border-top: 1px solid var(--glass-border);
+            padding-top: 20px;
         }
 
         #log {
-            margin-top: 30px;
-            font-size: 0.9rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.75rem;
             color: #555;
-            max-height: 150px;
+            height: 80px;
             overflow-y: auto;
-            text-align: left;
-            border-top: 1px solid #333;
-            padding-top: 10px;
+            mask-image: linear-gradient(to top, black 80%, transparent 100%);
+        }
+
+        .meta-note {
+            font-size: 0.7rem;
+            color: #444;
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+
+            .control-side {
+                width: 100%;
+                height: 50%;
+            }
+
+            .persona-side {
+                height: 50%;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>PersonaPlex</h1>
-        <div class="visualizer" id="visualizer">
-            <svg width="100" height="100" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" stroke="var(--accent-color)" stroke-width="2" fill="none" opacity="0.5">
-                    <animate attributeName="r" values="40;45;40" dur="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.5;0.2;0.5" dur="2s" repeatCount="indefinite" />
-                </circle>
-            </svg>
+    <div class="persona-side">
+        <!-- Replace 'persona_bg.jpg' with your generated background image -->
+        <img src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop"
+            class="persona-image" id="personaImg">
+        <div class="persona-overlay">
+            <div class="persona-name" id="personaName">PersonaPlex 7B</div>
+            <div class="persona-title">Autonomous AI Consultant</div>
         </div>
-        <div class="status" id="status">Ready</div>
-        <div class="controls">
-            <button id="startBtn">Start Conversation</button>
-            <button id="stopBtn" disabled>Stop</button>
+    </div>
+
+    <div class="control-side">
+        <div class="header">
+            <h1>SENSORY INTERFACE</h1>
         </div>
-        <p style="font-size: 0.8rem; color: #666; margin-top: 15px;">
-            Note: This system uses <strong>native SDL2 audio</strong>. <br>
-            It directly accesses your microphone/speakers, so no browser permission is needed.
-        </p>
-        <div id="log"></div>
+
+        <div class="call-display">
+            <div class="status-tag" id="status">Secure Link Ready</div>
+            <div class="call-timer" id="timer">00:00:00</div>
+
+            <div class="waveform" id="waveform">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+
+            <div class="call-controls">
+                <button class="btn-call btn-start" id="startBtn" title="Start Call">
+                    <i class="fas fa-phone"></i>
+                </button>
+                <button class="btn-call btn-stop" id="stopBtn" disabled title="End Call">
+                    <i class="fas fa-phone-slash"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="footer-info">
+            <div id="log">SYSTEM INITIALIZED. STANDBY.</div>
+            <p class="meta-note">NATIVE SDL2 AUDIO | 24KHZ | CUDA ACCELERATED</p>
+        </div>
     </div>
 
     <script>
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const statusEl = document.getElementById('status');
-        const visualizer = document.getElementById('visualizer');
+        const waveform = document.getElementById('waveform');
         const logEl = document.getElementById('log');
+        const timerEl = document.getElementById('timer');
 
         let ws;
+        let startTime;
+        let timerInterval;
+        let speechTimeout;
+
+        function updateTimer() {
+            const now = new Date();
+            const diff = now - startTime;
+            const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+            timerEl.textContent = `${h}:${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTime = new Date();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerEl.textContent = "00:00:00";
+        }
+
+        function setSpeaking(isSpeaking) {
+            if (isSpeaking) {
+                waveform.classList.add('active');
+                clearTimeout(speechTimeout);
+                speechTimeout = setTimeout(() => {
+                    waveform.classList.remove('active');
+                }, 2000); // 2s silence timeout
+            } else {
+                waveform.classList.remove('active');
+            }
+        }
 
         function connectWS() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -136,77 +417,65 @@
                 const data = event.data;
                 log(data);
 
-                // Update UI based on logs
-                if (data.includes("HEARTBEAT:") || data.includes("loading...")) {
-                    if (!statusEl.textContent.includes("Listening")) {
-                        statusEl.textContent = "Loading Model Weights (approx. 1 min)...";
-                        statusEl.style.color = "#ffa500";
-                    }
-                } else if (data.includes("Audio device opened") || data.includes("ready")) {
-                    statusEl.textContent = "Listening - Try speaking!";
+                // Detect AI speaking from stdout
+                if (data.includes("[OUT]")) {
+                    setSpeaking(true);
+                }
+
+                if (data.includes("Audio device opened") || data.includes("ready")) {
+                    statusEl.textContent = "CONNECTED";
                     statusEl.style.color = "var(--accent-color)";
-                    visualizer.classList.add('active');
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                } else if (data.includes("WebSocket closed")) {
-                    statusEl.textContent = "Connection Lost";
-                    statusEl.style.color = "#ff4444";
-                }
-
-                if (statusEl.textContent.includes("Listening")) {
-                    // Simple visualizer pulse on activity
-                    visualizer.classList.add('active');
-                    setTimeout(() => visualizer.classList.remove('active'), 200);
+                    if (!timerInterval) startTimer();
+                } else if (data.includes("HEARTBEAT:") || data.includes("loading...")) {
+                    statusEl.textContent = "ESTABLISHING LINK...";
+                } else if (data.includes("WebSocket closed") || data.includes("disconnected")) {
+                    statusEl.textContent = "LINK TERMINATED";
+                    statusEl.style.color = "var(--danger-color)";
+                    setSpeaking(false);
+                    stopTimer();
                 }
             };
 
-            ws.onclose = () => {
-                console.log("WS Closed, retrying...");
-                setTimeout(connectWS, 1000);
-            };
+            ws.onclose = () => setTimeout(connectWS, 2000);
         }
 
         connectWS();
 
         function log(msg) {
             const div = document.createElement('div');
-            div.textContent = msg;
+            div.textContent = `> ${msg}`;
             logEl.prepend(div);
-            // Limit log size
-            if (logEl.children.length > 50) logEl.lastChild.remove();
+            if (logEl.children.length > 30) logEl.lastChild.remove();
         }
 
         startBtn.addEventListener('click', async () => {
             startBtn.disabled = true;
-            stopBtn.disabled = false;
-            statusEl.textContent = "Initializing CUDA/Vulkan...";
-            statusEl.style.color = "#888";
-            log("--- Starting Session ---");
+            statusEl.textContent = "INITIALIZING CORE...";
             try {
                 const resp = await fetch('/start', { method: 'POST' });
                 const result = await resp.json();
                 if (result.status === "already_running") {
-                    statusEl.textContent = "Re-joining session...";
+                    statusEl.textContent = "RE-JOINING LINK...";
                 }
             } catch (e) {
-                log("Error starting: " + e);
+                log("UPLINK ERROR: " + e);
                 startBtn.disabled = false;
-                stopBtn.disabled = true;
-                statusEl.textContent = "Start Failed";
             }
         });
 
         stopBtn.addEventListener('click', async () => {
-            startBtn.disabled = false;
             stopBtn.disabled = true;
-            statusEl.textContent = "Stopping...";
-            statusEl.style.color = "#888";
+            statusEl.textContent = "TERMINATING...";
             try {
                 await fetch('/stop', { method: 'POST' });
-                statusEl.textContent = "Ready";
-                statusEl.style.color = "#888";
+                statusEl.textContent = "IDLE";
+                setSpeaking(false);
+                startBtn.disabled = false;
+                stopTimer();
             } catch (e) {
-                log("Error stopping: " + e);
+                log("TERMINATION ERROR: " + e);
             }
         });
     </script>
